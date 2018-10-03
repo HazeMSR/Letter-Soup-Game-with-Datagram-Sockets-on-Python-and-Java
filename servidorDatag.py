@@ -1,4 +1,4 @@
-import socket,random
+import socket,random,datetime
 
 #-----------------Constantes-------------------
 words = [
@@ -11,6 +11,39 @@ UDP_PORT = 8000
 
 #-------------------------------------------------
 #-----------------Funciones-----------------------
+class Timer(object):
+    """A simple timer class"""
+    
+    def __init__(self):
+        pass
+    
+    def start(self):
+        """Starts the timer"""
+        self.start = datetime.datetime.now()
+        return self.start
+    
+    def stop(self, message="Total: "):
+        """Stops the timer.  Returns the time elapsed"""
+        self.stop = datetime.datetime.now()
+        return (self.stop - self.start)
+    
+    def now(self, message="Now: "):
+        """Returns the current time with a message"""
+        return message + ": " + str(datetime.datetime.now())
+    
+    def elapsed(self, message="Elapsed: "):
+        """Time elapsed since start was called"""
+        return message + str(datetime.datetime.now() - self.start)
+    
+    def split(self, message="Split started at: "):
+        """Start a split timer"""
+        self.split_start = datetime.datetime.now()
+        return message + str(self.split_start)
+    
+    def unsplit(self, message="Unsplit: "):
+        """Stops a split. Returns the time elapsed since split was called"""
+        return message + str(datetime.datetime.now() - self.split_start)
+
 #Ordena conforme la longitud de la cadena
 def lensort(a):
     n = len(a)
@@ -35,6 +68,8 @@ def getSoup(a):
     i = i+1
 
   return lensort(soup)
+
+
 
 #Rellena una cadena con un alfabeto 
 def getRandomLetters(a,aux,m):
@@ -374,7 +409,9 @@ def wordSearchA(p,x1,y1,x2,y2,a):
   for wordss, positions in p.items():
     wLen = len(wordss)  
     for w, wp in a.items():
+
       if w != wordss:
+        print("w : "+w +" wordsss : "+wordss)
         for po in positions:
           if po[0] == x1 or po[0] == x2:
             if po[1] == y1 or po[1] == y2:
@@ -385,6 +422,66 @@ def wordSearchA(p,x1,y1,x2,y2,a):
                   return True,wordss
 
   return False,''
+
+def anagrama(p):
+  pLen = len(p)
+  numbers = random.sample(range(0,pLen), pLen)
+  i = 0
+  ret = ''
+
+  while i < pLen:
+    ret = ret + p[numbers[i]]
+    i = i + 1
+  
+  return ret
+
+def getSoupA(a):
+  cant_pal= random.randint(14,16)
+  i = 0
+  soup = {}
+  n = len(a) - 1
+
+  numbers = random.sample(range(0,n),cant_pal) #Para que las palabras se escojan al azar sin repetirse
+  while i < cant_pal:
+    aux = a[numbers[i]]
+    soup[aux] = anagrama(aux)
+    i = i+1
+
+  return soup
+
+def resize(do_while,v,positions,tablero,sopa,xp,yp,alphabet):
+  while do_while:
+    v,positions = getPositions(sopa,positions,xp,yp)
+  
+    if v == 0:
+      do_while = False
+    else:
+      print("Entro a la redimension")
+      if v == 1 or v == 9 or v == 5 or v == 13:
+        xp = xp +2
+        i = 0
+        tLen = len(tablero)
+        while i < tLen:
+          tablero[i]=getRandomLetters(alphabet,tablero[i],len(tablero[i])+2)
+          i = i+1
+  
+      elif v == 3 or v == 11 or v == 7 or v == 15:
+        yp = yp +2
+        aux=''
+        tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
+        tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
+  
+      else:
+        xp = xp +1
+        yp = yp +1
+        i = 0
+        tLen = len(tablero)
+        while i < tLen:
+          tablero[i]=getRandomLetters(alphabet,tablero[i],len(tablero[i])+1)
+          i = i+1
+        aux=''
+        tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
+  return tablero
 #---------------------------------------------
 
 #-------------Socket Server Logic-------------
@@ -394,6 +491,7 @@ sock.bind((UDP_IP, UDP_PORT))
 
 
 while True:
+    t = Timer()
     d = sock.recvfrom(1024)
     data = d[0]
     addr = d[1]
@@ -401,57 +499,34 @@ while True:
     if not data: 
         break
      
+    t.start()
     word = data.decode('utf-8')
     print(word)
-    tipo= random.randint(1,3)
+    tipo=2
+    #tipo= random.randint(1,3)
+    i=0
+    tablero = []
+    answers = {}
+    positions = {}
+    v=0
+    do_while = True
+    xp=14
+    yp=14
+    pistas = {}
+    j = 0
+    val = False
+    w = ''
+    res=0
+
+    while i < 15:
+      aux = ''
+      tablero.append(getRandomLetters(alphabet,aux,15))
+      i = i+1
 
     if word == '1':
-      i=0
-      tablero = []
-      answers = {}
-      while i < 15:
-        aux = ''
-        tablero.append(getRandomLetters(alphabet,aux,15))
-        i = i+1
       sopa = getSoup(words)
 
-      positions = {}
-      v=0
-      do_while = True
-
-      xp=14
-      yp=14
-      while do_while:
-        v,positions = getPositions(sopa,positions,xp,yp)
-
-        if v == 0:
-          do_while = False
-        else:
-          print("Entro a la redimension")
-          if v == 1 or v == 9 or v == 5 or v == 13:
-            xp = xp +2
-            i = 0
-            tLen = len(tablero)
-            while i < tLen:
-              tablero[i]=getRandomLetters(alphabet,tablero[i],len(tablero[i])+2)
-              i = i+1
-
-          elif v == 3 or v == 11 or v == 7 or v == 15:
-            yp = yp +2
-            aux=''
-            tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
-            tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
-
-          else:
-            xp = xp +1
-            yp = yp +1
-            i = 0
-            tLen = len(tablero)
-            while i < tLen:
-              tablero[i]=getRandomLetters(alphabet,tablero[i],len(tablero[i])+1)
-              i = i+1
-            aux=''
-            tablero.append(getRandomLetters(alphabet,aux,len(tablero[0])))
+      tablero = resize(do_while,v,positions,tablero,sopa,xp,yp,alphabet)
 
       tablero = fillTable(tablero,positions)
       print(positions)
@@ -465,8 +540,6 @@ while True:
       sock.sendto(str(tipo).encode('utf-8') , addr)
       print('tipo: '+str(tipo))
 
-      pistas = {}
-      j = 0
       
       do_while2=True
       while do_while2:
@@ -488,25 +561,28 @@ while True:
             if tipo == 1:
               sock.sendto(str(s).encode('utf-8') , addr)
             elif tipo == 2:
-              if j != 0:
-                if r == k:
-                  if pistas.get(s) == None:
-                    pistas[s] = [0] 
-                  else: 
-                    pLen =len(pistas[s])
-                    if pLen < len(s):
-                      pistas[s].append(pLen)
+              aux3= ''
+              rand= 0
+              do_while3 = True
+              if res == 0:
+                if len(pistas) != 0:
+                  while do_while3:
+                    rand = random.randint(0,len(sopa)-1)
 
-              if pistas.get(s) != None:
-                i = 0
-                pLen = len(pistas[s])
-                auxP = ''
-                while i < pLen:
-                  auxP = aux+str(s[pistas[s][i]])
-                  i = i+1
-                sock.sendto(auxP.encode('utf-8') , addr)
+                    for n,p in pistas.items():
+                      if n == rand:
+                        break
+                      else:
+                        do_while3 = False
+                res=3
+
+                pistas[rand]= sopa[rand]
+
+              if pistas.get(k) == None:
+                aux3=''
               else:
-                sock.sendto(' '.encode('utf-8') , addr)
+                aux3=pistas[k]
+              sock.sendto(aux3.encode('utf-8') , addr)
             else:
               sock.sendto(str(len(s)).encode('utf-8') , addr)
           k = k+1  
@@ -524,14 +600,10 @@ while True:
         y2 = int(d[0].decode('utf-8'))
         print(str(x1)+'\n'+str(y1)+'\n'+str(x2)+'\n'+str(y2))
 
-        val = False
-        w = ''
         if len(answers) == 0:
           val,w=wordSearch(positions,x1,y1,x2,y2)
         else:
           val,w=wordSearchA(positions,x1,y1,x2,y2,answers)
-
-        
 
         if val == True:
          
@@ -539,12 +611,28 @@ while True:
           answers[w]=ans
           
           if len(answers) == len(sopa):
+            res=2
             do_while2 = False
             sock.sendto(str(2).encode('utf-8') , addr)
+
+            tiempo = t.stop()
+            fh = open('record.txt', 'a') 
+            cadena = ''
+            if tipo == 1:
+              cadena='Fácil'
+            elif tipo == 2:
+              cadena='Intermedio'
+            else:
+              cadena='Avanzada'
+
+            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo)) 
+            fh.close()
           else:
+            res=1
             sock.sendto(str(1).encode('utf-8') , addr)
           sock.sendto((w+": "+ans).encode('utf-8') , addr)
         else:
+          res=0
           sock.sendto(str(0).encode('utf-8') , addr)
           sock.sendto("No se encuentra ninguna palabra entre las coordenadas indicadas.\nPruebe de nuevo.".encode('utf-8') , addr)
         
@@ -556,7 +644,130 @@ while True:
         j = j+1
 
         
-    #elif word == '2':
+    elif word == '2':
+
+      sopa = getSoupA(words)
+      print(sopa)
+      listaSopa = []
+      sopas = []
+
+      for s,a in sopa.items():
+        listaSopa.append(a)
+        sopas.append(s)
+
+      tablero = resize(do_while,v,positions,tablero,sopa,xp,yp,alphabet)
+      tablero = fillTable(tablero,positions)
+      print(positions)
+
+      sock.sendto(str(len(tablero)).encode('utf-8') , addr)
+      for t in tablero:
+        sock.sendto(str(t).encode('utf-8') , addr)
+
+      sock.sendto(str(len(sopa)).encode('utf-8') , addr)
+      print('sopa: '+str(len(sopa)))
+      sock.sendto(str(tipo).encode('utf-8') , addr)
+      print('tipo: '+str(tipo))
+      
+      do_while2=True
+      while do_while2:
+        r = random.randint(0,len(sopa)-1)
+        k = 0
+
+        for s,ana in sopa.items():
+          val2 = False
+          aux2 = ''
+
+          for a,c in answers.items():
+            if a == ana:
+              aux2 = s+"("+a+"): "+c
+              val2 = True
+
+          if val2 == True:
+            sock.sendto(aux2.encode('utf-8') , addr)
+          else:
+            if tipo == 1:
+              sock.sendto(str(s).encode('utf-8') , addr)
+            elif tipo == 2:
+              aux3 = ''
+              do_while3 = True
+              rand=0
+              if res == 0:
+                if len(pistas) != 0:
+                  while do_while3:
+                    rand = random.randint(0,len(sopa)-1)
+
+                    for n,p in pistas.items():
+                      if n == rand:
+                        break
+                      else:
+                        do_while3 = False
+                res=3
+                
+                pistas[rand]= sopa[rand]
+              if pistas.get(k) == None:
+                aux3=''
+              else:
+                aux3=pistas[k]
+              sock.sendto(aux3.encode('utf-8') , addr)
+            else:
+              sock.sendto(str(len(s)).encode('utf-8') , addr)
+          k = k+1  
+
+        d = sock.recvfrom(1024)
+        x1 = int(d[0].decode('utf-8'))
+
+        d = sock.recvfrom(1024)
+        y1 = int(d[0].decode('utf-8'))
+
+        d = sock.recvfrom(1024)
+        x2 = int(d[0].decode('utf-8'))
+
+        d = sock.recvfrom(1024)
+        y2 = int(d[0].decode('utf-8'))
+        print(str(x1)+'\t,'+str(y1)+'\t -> '+str(x2)+',\t'+str(y2))
+
+        if len(answers) == 0:
+          val,w=wordSearch(positions,x1,y1,x2,y2)
+        else:
+          val,w=wordSearchA(positions,x1,y1,x2,y2,answers)
+
+        if val == True:
+         
+          ans="("+str(x1)+","+str(y1)+") a ("+str(x2)+","+str(y2)+")"
+          answers[w]=ans
+          
+          if len(answers) == len(sopa):
+            res=2
+            do_while2 = False
+            sock.sendto(str(2).encode('utf-8') , addr)
+            tiempo = t.stop()
+            fh = open('record.txt', 'a') 
+            cadena = ''
+            if tipo == 1:
+              cadena='Fácil'
+            elif tipo == 2:
+              cadena='Intermedio'
+            else:
+              cadena='Avanzada'
+
+            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo)) 
+            fh.close()
+
+          else:
+            res=1
+            sock.sendto(str(1).encode('utf-8') , addr)
+          sock.sendto((w+": "+ans).encode('utf-8') , addr)
+        else:
+          res=0
+          sock.sendto(str(0).encode('utf-8') , addr)
+          sock.sendto("No se encuentra ninguna palabra entre las coordenadas indicadas.\nPruebe de nuevo.".encode('utf-8') , addr)
+        
+        d = sock.recvfrom(1024)
+        salir = int(d[0].decode('utf-8'))
+
+        if salir == 2:
+          break
+        j = j+1
 
     elif word == '3':
       break
@@ -565,8 +776,8 @@ while True:
       reply = '\nNo envió un número correcto. Pruebe de nuevo.'
       sock.sendto(reply.encode('utf-8') , addr)
 
-    
-    print ('Message[' + addr[0] + ':' + str(addr[1]) + '] - ' + data.decode('utf-8'))
+    if salir == 2:
+      tiempo = t.stop()
 
 #---------------------------------------------
     

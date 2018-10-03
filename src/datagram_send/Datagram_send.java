@@ -211,8 +211,17 @@ public class Datagram_send{
                 String res2 =new String(dp.getData(), 0, dp.getLength());
                 
             }
-            System.out.println("Desea continuar? \n\t1. Si.\n\t2. No.");
-            String salir = stdin.readLine();
+            boolean val2=false;
+            String salir="";
+           
+            do{
+                System.out.println("Desea continuar? \n\t1. Si.\n\t2. No.");
+                salir = stdin.readLine();
+                val2 = salir.matches("[1-2]{1}");
+                if (!val2)
+                    System.out.println("No ingreso un caracter valido.Pruebe de nuevo");
+            }while(!val2);
+
                     
             buf =  salir.getBytes();
             out = new DatagramPacket(buf, buf.length, hostAddress, 8000);
