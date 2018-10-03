@@ -380,20 +380,14 @@ def wordSearch(p,x1,y1,x2,y2):
     longit = abs(y1-y2)+1
 
   for wordss, positions in p.items():
-    #print("Entro1")
     wLen = len(wordss)  
     for po in positions:
-      #print("Entro2")
-      if po[0] == x1 or po[0] == x2:
-        #print("Entro3")
-        if po[1] == y1 or po[1] == y2:
-          #print("Entro4")
-          if val == False:
-            #print("Entro5")
-            val = True
-          else:
-            if wLen == longit:
-              return True,wordss
+      if (po[0] == x1 and po[1] == y1) or (po[0] == x2 and po[1] == y2):
+        if val == False:
+          val = True
+        else:
+          if wLen == longit:
+            return True,wordss
 
   return False,''
 
@@ -409,17 +403,14 @@ def wordSearchA(p,x1,y1,x2,y2,a):
   for wordss, positions in p.items():
     wLen = len(wordss)  
     for w, wp in a.items():
-
       if w != wordss:
-        print("w : "+w +" wordsss : "+wordss)
         for po in positions:
-          if po[0] == x1 or po[0] == x2:
-            if po[1] == y1 or po[1] == y2:
-              if val == False:
-                val = True
-              else:
-                if wLen == longit:
-                  return True,wordss
+          if (po[0] == x1 and po[1] == y1) or (po[0] == x2 and po[1] == y2):
+            if val == False:
+              val = True
+            else:
+              if wLen == longit:
+                return True,wordss
 
   return False,''
 
@@ -491,7 +482,7 @@ sock.bind((UDP_IP, UDP_PORT))
 
 
 while True:
-    t = Timer()
+    tiempo = Timer()
     d = sock.recvfrom(1024)
     data = d[0]
     addr = d[1]
@@ -499,7 +490,8 @@ while True:
     if not data: 
         break
      
-    t.start()
+    tiempo.start()
+
     word = data.decode('utf-8')
     print(word)
     tipo=2
@@ -615,7 +607,7 @@ while True:
             do_while2 = False
             sock.sendto(str(2).encode('utf-8') , addr)
 
-            tiempo = t.stop()
+            tiempo2 = tiempo.stop()
             fh = open('record.txt', 'a') 
             cadena = ''
             if tipo == 1:
@@ -625,7 +617,7 @@ while True:
             else:
               cadena='Avanzada'
 
-            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo)) 
+            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo2)) 
             fh.close()
           else:
             res=1
@@ -740,7 +732,7 @@ while True:
             res=2
             do_while2 = False
             sock.sendto(str(2).encode('utf-8') , addr)
-            tiempo = t.stop()
+            tiempo2 = tiempo.stop()
             fh = open('record.txt', 'a') 
             cadena = ''
             if tipo == 1:
@@ -750,7 +742,7 @@ while True:
             else:
               cadena='Avanzada'
 
-            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo)) 
+            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo2)) 
             fh.close()
 
           else:
