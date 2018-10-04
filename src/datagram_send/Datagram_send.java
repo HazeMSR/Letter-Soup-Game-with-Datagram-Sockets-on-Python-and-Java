@@ -12,7 +12,8 @@ import java.util.logging.Logger;
 public class Datagram_send{
   public static void main(String[] args) throws IOException {
     DatagramSocket s = null;
-    int i =0;
+    String salir = "";
+    
       try {
           s = new DatagramSocket();
       } catch (SocketException ex) {
@@ -32,18 +33,35 @@ public class Datagram_send{
         BufferedReader stdin;
       do{
         stdin = new BufferedReader(new InputStreamReader(System.in));
-        System.out.println("Que desea hacer?\n\t1. Jugar por concepto.\n\t2. Jugar por anagrama.\n\t3. Salir del juego\n");
+        System.out.println("Que desea hacer?\n\t1. Jugar por concepto.\n\t2. Jugar por anagrama.\n\t3. Mostrar estadísticas.\n\t4. Salir del juego\n");
         outMessage = stdin.readLine();
-      }while(!outMessage.matches("[1-3]{1}"));
+      }while(!outMessage.matches("[1-4]{1}"));
 
 
       buf = outMessage.getBytes();
 
       DatagramPacket out = new DatagramPacket(buf, buf.length, hostAddress, 8000);
       s.send(out);
-      if (outMessage.equals("3"))
+      if (outMessage.equals("4"))
         break;
-      
+      if(outMessage.equals("3")){
+          s.receive(dp);
+          int rows = Integer.parseInt(new String(dp.getData(), 0, dp.getLength()));
+          int i = 0;
+          String []datos = new String[rows];
+          while (i<rows){
+               s.receive(dp);
+               String res = new String(dp.getData(), 0, dp.getLength());
+               datos[i] = res;
+               String []aux=datos[i].split("-");
+               String []tiempo=aux[2].split(":");
+               System.out.println("Tipo de juego: "+aux[0]+".\tDificultad: "+aux[1]+".\tTiempo: "+tiempo[0]+" horas, "+tiempo[1]+" minutos, "+tiempo[2]
+               +" segundos.\tJugador: "+aux[3]+".\tPalabras: "+aux[43]);
+              i++;
+          }
+          
+      }
+      else{
       s.receive(dp);
       String rcvd = "Servidor: "+ dp.getAddress() + ":" + dp.getPort() + "\nCantidad de palabras=" + new String(dp.getData(), 0, dp.getLength()) ;
          
@@ -52,6 +70,7 @@ public class Datagram_send{
       int rows = Integer.parseInt(new String(dp.getData(), 0, dp.getLength()));
       int columns = 0;
       String []table = new String[rows+1];
+      int i =0;
       while(i<rows){
         s.receive(dp);
         String rcvd2 = new String(dp.getData(), 0, dp.getLength());  
@@ -90,7 +109,9 @@ public class Datagram_send{
       int wordsAmount = Integer.parseInt(new String(dp.getData(), 0, dp.getLength()));
       s.receive(dp);
       int tipo = Integer.parseInt(new String(dp.getData(), 0, dp.getLength()));
-
+      s.receive(dp);
+      String tema = new String(dp.getData(), 0, dp.getLength());
+      System.out.println("El tema del crucigrama es:\n\t"+tema);
       if (tipo == 1){
           System.out.println("La dificultad del juego es: Facil");
           System.out.println("Se mostrará la lista de palabras por encontrar");
@@ -205,6 +226,27 @@ public class Datagram_send{
                 String res2 =new String(dp.getData(), 0, dp.getLength());
                 System.out.println("Felicidades! Ha encontrado una palabra:");
                 System.out.println(res2);
+                if (res==2){
+                    System.out.println("\n\n\tG\tA\tM\tE\t\tO\tV\tE\tR\n\n");
+                    System.out.println("Su tiempo total fue:");
+                    s.receive(dp);       
+                    String tiempo = new String(dp.getData(), 0, dp.getLength()); 
+                    String []t = tiempo.split(":");
+                    System.out.println(t[0]+" horas.\t"+t[1]+" minutos.\t"+t[2]+" segundos.");
+                    
+                    boolean vn= false;
+                    String nom = "";
+                    do{
+                       System.out.println("Ingrese su nombre sin acentos para el record:\n");
+                       nom=stdin.readLine();
+                       vn = nom.matches("[a-zA-Z]+");
+                       if(!vn)
+                           System.out.println("No ingreso el formato solicitado, pruebe de nuevo.");
+                    }while(!vn);
+                    buf = nom.getBytes();
+                    out = new DatagramPacket(buf, buf.length, hostAddress, 8000);
+                    s.send(out);
+                }
             }else if(res==0){
                 System.out.println("Lo sentimos. No encontro ninguna palabra.");
                 s.receive(dp);
@@ -212,15 +254,17 @@ public class Datagram_send{
                 
             }
             boolean val2=false;
-            String salir="";
-           
-            do{
-                System.out.println("Desea continuar? \n\t1. Si.\n\t2. No.");
-                salir = stdin.readLine();
-                val2 = salir.matches("[1-2]{1}");
-                if (!val2)
-                    System.out.println("No ingreso un caracter valido.Pruebe de nuevo");
-            }while(!val2);
+
+            if(res!=2)
+                do{
+                    System.out.println("Desea continuar? \n\t1. Si.\n\t2. No.");
+                    salir = stdin.readLine();
+                    val2 = salir.matches("[1-2]{1}");
+                    if (!val2)
+                        System.out.println("No ingreso un caracter valido.Pruebe de nuevo");
+                }while(!val2);
+            else
+                salir="1";
 
                     
             buf =  salir.getBytes();
@@ -230,7 +274,8 @@ public class Datagram_send{
                 break;
             k++;
         }
-      while(res!=2);
+      while(res!=2);        
+      }//end else
     } // end while
   } // end main
 } // end class

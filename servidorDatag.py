@@ -1,11 +1,17 @@
 import socket,random,datetime
 
 #-----------------Constantes-------------------
-words = [
-  "sobre","año","todos","tiempo","vida","gobierno","siempre","día","país","mundo","año","estado","forma","general","presidente","mayor","momento","millón","hoy","lugar","trabajo","política","pasado","poder","partido","persona","grupo","cuenta","mujer","fin","ciudad","social","sistema","historia","punto","noche","agua","parece","situación","ejemplo","acuerdo","estado","tarde","ley","guerra","proceso","realidad","sentido","lado","cambio","número","sociedad","centro","padre","gente","final","relación","cuerpo","obra","madre","problema","hombre","información","ojos","muerte","nombre","público","siglo","mañana","derecho","verdad","cabeza","equipo","director","nivel","familia","ministro","seguridad","semana","proyecto","mercado","programa","palabras","internacional","empresa","libro","dios","fuerza","acción","amor","policía","puerta","zona","interior","música","campo","presencia","dinero","comisión","servicio","producción","papel","especial","capital","libertad","espacio","población","principio","cultura","arte","paz","sector","imagen","personal","interés","movimiento","actividad","difícil","joven","futuro","posibilidad","educación","atención","capacidad","investigación","figura","comunidad","necesidad","organización","calidad"
-]
-words = list(set(words)) #Elimina palabras repetidas
+
 alphabet = "abcdefghijklmnñopqrstuvwxyzáéíóú"
+temas={}
+temas["tiempo"] =["año","siempre","día","momento","hoy","pasado","noche","tarde","siglo","mañana","semana","futuro","nunca","ayer","hora","minuto","segundo"]
+temas["zonas"]=["mundo","lugar","país","ciudad","centro","interior","campo","espacio","sector","nación","área","afuera","adentro","encima","detrás","abajo","enfrente"]
+temas["política"]=["gobierno","general","presidente","poder","partido","acuerdo","ley","guerra","público","ministro","internacional","estado","capital","organización","embajador","subsidio"]
+temas["sociedad"]=["todos","persona","grupo","mujer","padre","gente","relación","hombre","familia","madre","población","joven","comunidad","necesidad","socializar","amistad","nombre"]
+temas["educación"]=["social","cuenta","historia","ejemplo","cuerpo","ojos","cabeza","derecho","palabra","libro","fuerza","música","cultura","arte","movimiento","actividad","investigación"]
+temas["trabajo"]=["sobre","proceso","equipo","director","nivel","seguridad","proyecto","mercado","programa","policía","empresa","dinero","comisión","servicio","producción","papel","interés","atención","calidad"]
+temas["matemáticas"]=["forma","mayor","millón","sistema","punto","lado","cambio","número","problema","figura","posibilidad","capacidad","volumen","peso","sumar","restar","multiplicar","dividir"]
+temas["filosofía"]=["vida","fin","moral","situación","realidad","sentido","lógica","muerte","verdad","dios","ética","amor","presencia","libertad","principio","paz","existencia","personal","significado"]
 UDP_IP = "localhost"
 UDP_PORT = 8000
 
@@ -494,8 +500,8 @@ while True:
 
     word = data.decode('utf-8')
     print(word)
-    tipo=2
-    #tipo= random.randint(1,3)
+    tipo = random.randint(1,3)
+    tema = random.randint(1,7)
     i=0
     tablero = []
     answers = {}
@@ -509,14 +515,33 @@ while True:
     val = False
     w = ''
     res=0
+    palabras=''
 
     while i < 15:
       aux = ''
       tablero.append(getRandomLetters(alphabet,aux,15))
       i = i+1
 
+    if tema == 1:
+      palabra ="tiempo"
+    elif tema == 2:
+      palabra = "zonas"
+    elif tema == 3:
+      palabra = "política"
+    elif tema == 4:  
+      palabra = "sociedad"
+    elif tema == 5:
+      palabra = "educación"
+    elif tema == 5:
+      palabra = "trabajo"
+    elif tema == 6:
+      palabra = "matemáticas"
+    elif tema == 7:
+      palabra = "filosofía"
+
     if word == '1':
-      sopa = getSoup(words)
+
+      sopa = getSoup(temas[palabra])
 
       tablero = resize(do_while,v,positions,tablero,sopa,xp,yp,alphabet)
 
@@ -531,6 +556,8 @@ while True:
       print('sopa: '+str(len(sopa)))
       sock.sendto(str(tipo).encode('utf-8') , addr)
       print('tipo: '+str(tipo))
+      sock.sendto(palabra.encode('utf-8') , addr)
+      print('tema: '+palabra)
 
       
       do_while2=True
@@ -560,7 +587,6 @@ while True:
                 if len(pistas) != 0:
                   while do_while3:
                     rand = random.randint(0,len(sopa)-1)
-
                     for n,p in pistas.items():
                       if n == rand:
                         break
@@ -590,7 +616,7 @@ while True:
 
         d = sock.recvfrom(1024)
         y2 = int(d[0].decode('utf-8'))
-        print(str(x1)+'\n'+str(y1)+'\n'+str(x2)+'\n'+str(y2))
+        print(str(x1)+'\t,\t'+str(y1)+'\t->\t'+str(x2)+'\t,\t'+str(y2))
 
         if len(answers) == 0:
           val,w=wordSearch(positions,x1,y1,x2,y2)
@@ -606,8 +632,11 @@ while True:
             res=2
             do_while2 = False
             sock.sendto(str(2).encode('utf-8') , addr)
+            sock.sendto((w+": "+ans).encode('utf-8') , addr)
 
             tiempo2 = tiempo.stop()
+            sock.sendto(str(tiempo2).encode('utf-8') , addr)
+
             fh = open('record.txt', 'a') 
             cadena = ''
             if tipo == 1:
@@ -617,12 +646,16 @@ while True:
             else:
               cadena='Avanzada'
 
-            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo2)) 
+            d = sock.recvfrom(1024)
+            nombre = d[0].decode('utf-8')
+
+            fh.write("Concepto-"+cadena+"-"+str(tiempo2)+"-"+nombre+"-"+str(sopa)) 
             fh.close()
           else:
             res=1
             sock.sendto(str(1).encode('utf-8') , addr)
-          sock.sendto((w+": "+ans).encode('utf-8') , addr)
+          if len(answers) != len(sopa):
+            sock.sendto((w+": "+ans).encode('utf-8') , addr)
         else:
           res=0
           sock.sendto(str(0).encode('utf-8') , addr)
@@ -638,7 +671,7 @@ while True:
         
     elif word == '2':
 
-      sopa = getSoupA(words)
+      sopa = getSoupA(temas[palabra])
       print(sopa)
       listaSopa = []
       sopas = []
@@ -647,7 +680,7 @@ while True:
         listaSopa.append(a)
         sopas.append(s)
 
-      tablero = resize(do_while,v,positions,tablero,sopa,xp,yp,alphabet)
+      tablero = resize(do_while,v,positions,tablero,listaSopa,xp,yp,alphabet)
       tablero = fillTable(tablero,positions)
       print(positions)
 
@@ -659,6 +692,8 @@ while True:
       print('sopa: '+str(len(sopa)))
       sock.sendto(str(tipo).encode('utf-8') , addr)
       print('tipo: '+str(tipo))
+      sock.sendto(palabra.encode('utf-8') , addr)
+      print('tema: '+palabra)
       
       do_while2=True
       while do_while2:
@@ -686,7 +721,7 @@ while True:
               if res == 0:
                 if len(pistas) != 0:
                   while do_while3:
-                    rand = random.randint(0,len(sopa)-1)
+                    rand = random.randint(0,len(sopas)-1)
 
                     for n,p in pistas.items():
                       if n == rand:
@@ -695,7 +730,7 @@ while True:
                         do_while3 = False
                 res=3
                 
-                pistas[rand]= sopa[rand]
+                pistas[rand]= sopas[rand]
               if pistas.get(k) == None:
                 aux3=''
               else:
@@ -716,7 +751,7 @@ while True:
 
         d = sock.recvfrom(1024)
         y2 = int(d[0].decode('utf-8'))
-        print(str(x1)+'\t,'+str(y1)+'\t -> '+str(x2)+',\t'+str(y2))
+        print(str(x1)+'\t,\t'+str(y1)+'\t->\t'+str(x2)+'\t,\t'+str(y2))
 
         if len(answers) == 0:
           val,w=wordSearch(positions,x1,y1,x2,y2)
@@ -732,7 +767,11 @@ while True:
             res=2
             do_while2 = False
             sock.sendto(str(2).encode('utf-8') , addr)
+            sock.sendto((w+": "+ans).encode('utf-8') , addr)
+
             tiempo2 = tiempo.stop()
+            sock.sendto(str(tiempo2).encode('utf-8') , addr)
+
             fh = open('record.txt', 'a') 
             cadena = ''
             if tipo == 1:
@@ -742,13 +781,16 @@ while True:
             else:
               cadena='Avanzada'
 
-            fh.write(cadena+" - "+str(sopass)+" - "+str(tiempo2)) 
-            fh.close()
+            d = sock.recvfrom(1024)
+            nombre = d[0].decode('utf-8')
 
+            fh.write("Anagrama-"+cadena+"-"+str(tiempo2)+"-"+nombre+"-"+str(sopas)) 
+            fh.close()
           else:
             res=1
             sock.sendto(str(1).encode('utf-8') , addr)
-          sock.sendto((w+": "+ans).encode('utf-8') , addr)
+          if len(answers) != len(sopa):
+            sock.sendto((w+": "+ans).encode('utf-8') , addr)
         else:
           res=0
           sock.sendto(str(0).encode('utf-8') , addr)
@@ -760,8 +802,17 @@ while True:
         if salir == 2:
           break
         j = j+1
-
     elif word == '3':
+      fh = open('record.txt', 'r')  
+      record = fh.readlines() 
+      sock.sendto(str(len(record)).encode('utf-8') , addr)
+
+      rLen=len(record)
+      i = 0
+      while i<rLen:
+        sock.sendto(str(record[i]).encode('utf-8') , addr)
+        i = i+1
+    elif word == '4':
       break
 
     else:
@@ -769,7 +820,7 @@ while True:
       sock.sendto(reply.encode('utf-8') , addr)
 
     if salir == 2:
-      tiempo = t.stop()
+      tiempo2 = tiempo.stop()
 
 #---------------------------------------------
     

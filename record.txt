@@ -1,0 +1,3 @@
+Concepto-Intermedio-0:04:51.306690-Hazel-['internacional', 'palabras', 'comisión', 'relación', 'mercado', 'sentido', 'muerte', 'sector', 'forma', 'grupo', 'arte', 'zona', 'año', 'paz', 'fin']
+Concepto-Fácil-0:03:57.321312-Hazel-['comunidad', 'necesidad', 'población', 'relación', 'amistad', 'persona', 'familia', 'hombre', 'grupo', 'joven', 'todos', 'gente', 'mujer', 'madre', 'padre']
+Anagrama-Intermedio-0:04:53.385102-Hazel-['cuerpo', 'arte', 'libro', 'movimiento', 'cultura', 'derecho', 'ejemplo', 'ojos', 'historia', 'palabra', 'fuerza', 'música', 'cabeza', 'social', 'actividad', 'cuenta']
